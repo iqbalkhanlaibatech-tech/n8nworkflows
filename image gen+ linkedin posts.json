@@ -1,0 +1,278 @@
+{
+  "name": "image gen+ linkedin posts",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Credentials ",
+        "formDescription": "Please fill out the form to proceed.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name"
+            },
+            {
+              "fieldLabel": "Email"
+            },
+            {
+              "fieldLabel": "Topic"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -400,
+        -16
+      ],
+      "id": "61547e56-7575-4fd1-be1e-16619b36e30c",
+      "name": "On form submission",
+      "webhookId": "28e8aace-4b82-4c0b-bd36-8f277253bd53"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=topic: {{ $json.Topic }}",
+        "options": {
+          "systemMessage": "You are an expert LinkedIn content writer and thought leader.\n\nYour task is to create a high-quality, professional LinkedIn post based on the topic provided by the user.\nBefore writing, use the Tavily Search Tool to research the topic.\nFind the latest and most reliable information.\nGather important facts, trends, statistics, or recent developments.\nDo not invent or hallucinate information.\nIf multiple viewpoints exist, summarize the most credible ones.\nWrite a LinkedIn post that:\nSounds natural and human-written.\nIs professional yet conversational.\nHooks the reader in the first 1–2 lines.\nProvides valuable insights rather than simply repeating facts.\nIncludes key takeaways from your research.\nExplains why the topic matters.\nEncourages discussion or engagement.\nEnds with a thoughtful question or call to action.\nFormatting requirements:\nUse short paragraphs.\nUse emojis sparingly (0–3 maximum).\nUse bullet points only when they improve readability.\nAvoid clickbait.\nAvoid excessive hashtags.\nAt the end, include 3–5 relevant hashtags.\nIf the topic is broad, narrow it to the most relevant and recent angle based on your research.\nIf recent information cannot be found, create an evergreen educational post using well-established knowledge and do not mention unsupported claims.\nReturn only the LinkedIn post as plain text.\n\nDo not include:\n\nTitles like \"LinkedIn Post\"\nResearch notes\nExplanations\nCitations\nMarkdown code blocks\nAny text before or after the post\n\nThe output should be ready to publish directly on LinkedIn."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -192,
+        -16
+      ],
+      "id": "f8098014-a9ad-4849-92d3-b0eedd7fe1e3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        192
+      ],
+      "id": "4822d12c-f5a2-4df7-93f3-216aecb2ac72",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pimKBMtjiFzQQua0",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.Topic }}\",\n  \"search_depth\": \"basic\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 1,\n  \"topic\": \"general\",\n  \"time_range\": null,\n  \"start_date\": \"2025-02-09\",\n  \"end_date\": \"2025-12-29\",\n  \"include_answer\": false,\n  \"include_raw_content\": false,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_favicon\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": [],\n  \"country\": null,\n  \"auto_parameters\": false,\n  \"exact_match\": false,\n  \"include_usage\": false,\n  \"safe_search\": false\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        -112,
+        224
+      ],
+      "id": "29300d2c-9d92-4d1d-a63c-db24f22ac62f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=text: {{ $json.output }}",
+        "options": {
+          "systemMessage": "#overview \nYou are an expert prompt engineer for AI image generation models such as DALL·E, Midjourney, Flux, Stable Diffusion, and Imagen.\nYour task is to transform the user's input into a detailed, visually rich image-generation prompt.\n\n#instructions \nCarefully understand the main idea and key message of the provided text.\nCreate one detailed image-generation prompt that visually represents the content.\nInclude:\nMain subject\nEnvironment/background\nComposition\nLighting\nColors and mood\nCamera angle or perspective\nArtistic style (photorealistic, cinematic, digital illustration, 3D render, etc.) that best matches the content\nImportant objects or symbols that reinforce the message\nIf the text describes an abstract idea, convert it into a compelling visual metaphor.\nDo not include readable text, quotation marks, double quotes, logos, watermarks, UI elements, or branding unless the user explicitly requests them.\nMake the prompt detailed enough to produce a high-quality image while remaining concise (100–250 words).\nFocus on creating a professional, visually striking image suitable for platforms such as LinkedIn, blogs, presentations, or websites.\nInfer reasonable visual details when they are not explicitly provided, but do not invent factual claims.\nDo not explain your reasoning or mention these instructions.\n\n #Output Requirements\nReturn only the image-generation prompt.\n\nDo not return:\n\nJSON\nMarkdown\nBullet points\nHeadings\nExplanations\nNotes\nMultiple prompt options\n\nThe output should be a single, polished prompt ready to send directly to an AI image generation model."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        96,
+        -16
+      ],
+      "id": "d6845085-af9c-432a-844e-4c51aaa43027",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-image",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-image (Nano Banana)"
+        },
+        "prompt": "={{ $('AI Agent1').item.json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -16
+      ],
+      "id": "f5c7d561-758a-439d-b050-917c82d72c69",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zSalSaRI7oenDCST",
+          "name": "n8n dosra"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        176
+      ],
+      "id": "d88c9dc4-e925-40e1-ae87-a6cc5d8951a1",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zSalSaRI7oenDCST",
+          "name": "n8n dosra"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "={{ $('On form submission').item.json.Topic }}",
+        "emailType": "text",
+        "message": "={{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        -16
+      ],
+      "id": "0ed94536-2cc8-4d47-885f-3e75f2607a5c",
+      "name": "Send a message",
+      "webhookId": "12f683d0-e951-424b-aae4-3d17884906c4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bBYgnGvwGitWxhWf",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d2f52eb1-869d-4bfb-b87e-34dcdf6a332a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e46b6f9edef07eceb1f843a13465d8b163862c289383aee4590274c6319a5991"
+  },
+  "nodeGroups": [],
+  "id": "XQr1tbiJeGHPfCQH",
+  "tags": []
+}
