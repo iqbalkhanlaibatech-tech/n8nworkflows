@@ -1,0 +1,276 @@
+{
+  "name": "emailcheck+draft",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "maxResults": 1,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -336,
+        -16
+      ],
+      "id": "93a65c3d-88cf-44ea-97e3-ec8e10ddc446",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bBYgnGvwGitWxhWf",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "order",
+              "description": "if the message contains word order "
+            },
+            {
+              "category": "query",
+              "description": "if a message contains query or question "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        -16
+      ],
+      "id": "448a1a18-0840-41b1-8917-df1b43d3d1b8",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        176
+      ],
+      "id": "428ad18f-a665-41bd-9b03-0e5bb14fffdb",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pimKBMtjiFzQQua0",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $('Gmail Trigger').item.json.headers.subject }}",
+        "message": "={{ $json.candidates[0].content.parts[2].text }}",
+        "options": {
+          "sendTo": "={{ $('Text Classifier').item.json.from.value[0].address }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -112
+      ],
+      "id": "5d2aaa3f-9695-4987-9fa8-b5fbf418a496",
+      "name": "Create a draft",
+      "webhookId": "9985f17e-e9c1-4a80-aab6-c64c17b608d5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bBYgnGvwGitWxhWf",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $('Gmail Trigger').item.json.headers.subject }}",
+        "message": "={{ $json.candidates[0].content.parts[2].text }}",
+        "options": {
+          "sendTo": ""
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        80
+      ],
+      "id": "1c402d91-306c-4d83-b6fe-e91c93194ca7",
+      "name": "Create a draft1",
+      "webhookId": "4f7dfb26-8142-4b04-a740-5588596518c2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bBYgnGvwGitWxhWf",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a professional customer support representative.\n\nWrite a polite, professional email reply based on the customer's email below.\n\nRules:\n- Thank the customer.\n- Answer their question clearly.\n- If it is a new order, acknowledge the order and say it is being processed.\n- If information is missing, politely ask for it.\n- Keep the email concise and friendly.\n- dont add subject in the mesaage \n- End with:\nBest regards,\nCustomer Support\n\nCustomer Email:\n\n{{ $json.text }}",
+              "role": "model"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        -80
+      ],
+      "id": "8eda0bcc-b4be-4b37-93db-9151b7eed19d",
+      "name": "writing draft",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pimKBMtjiFzQQua0",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a professional customer support representative.\n\nWrite a polite, professional email reply based on the customer's email below.\n\nRules:\n- Thank the customer.\n- Answer their question clearly.\n- If it is a new order, acknowledge the order and say it is being processed.\n- If information is missing, politely ask for it.\n- Keep the email concise and friendly.\n- dont add subject in the mesaage \n- dont add specific name \n- End with:\nBest regards,\nCustomer Support\n{{ $json.text }}\n",
+              "role": "model"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        64
+      ],
+      "id": "e6d5baf8-cf3f-47c7-809a-864a48ee6727",
+      "name": "writing a draft",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pimKBMtjiFzQQua0",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "writing draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "writing a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "writing draft": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "writing a draft": {
+      "main": [
+        [
+          {
+            "node": "Create a draft1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0b337470-c71d-4e51-a732-afb2ddce3a5d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e46b6f9edef07eceb1f843a13465d8b163862c289383aee4590274c6319a5991"
+  },
+  "nodeGroups": [],
+  "id": "xt9oknaHebDl3HEG",
+  "tags": []
+}
